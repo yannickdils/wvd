@@ -21,3 +21,8 @@ The script is provided as-is, the following parameters are required in order to 
 The script loops through your active Windows Virtual Desktop sessions and active storage handles.
 
 It then checks each storage handle, whether or not it has a corresponding active WVD session. If not you are presented with the virtual machine name where the FSLogix container is mounted.
+
+**How to run the script:**
+Download the scripts as provided in this repository, make sure to alter the script path in the [Clean-LingeringFSLogixProfiles.ps1](https://github.com/yannickdils/wvd/blob/main/FSLogix/Troubleshooting/Clean-LingeringFSLogixProfiles.ps1 "Clean-LingeringFSLogixProfiles.ps1") script. This script references the script that is imported and run within the guest operating system [Clean-InVMLingeringFSLogixProfiles.ps1](https://github.com/yannickdils/wvd/blob/main/FSLogix/Troubleshooting/Clean-InVMLingeringFSLogixProfiles.ps1 "Clean-InVMLingeringFSLogixProfiles.ps1")
+
+
