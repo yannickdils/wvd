@@ -6,7 +6,7 @@ The script is provided as-is, the following parameters are required in order to 
 
   
 
-* Mode: you can alert of react to a possible lingered fslogix profile (under construction)
+* Mode: you can alert or react to a possible lingered fslogix profile (under construction)
 
 * ProfileStorageAccount: you need to provide the storage account name where you store your FSLogix containers
 
