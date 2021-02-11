@@ -41,11 +41,11 @@ $frontend = New-AzLoadBalancerFrontendIpConfig -Name $ELBFrontEndName -PublicIpA
 # Step 3: Create a new back end pool configuration
 $backendAddressPool = New-AzLoadBalancerBackendAddressPoolConfig -Name $ELDBackEndPoolName
 
+
 # Step 4: Create the actual load balancer
 $slb = New-AzLoadBalancer -Name $ELBname -ResourceGroupName $ELBResourceGroup -Location $ELBlocation -FrontendIpConfiguration $frontend -BackendAddressPool $backendAddressPool -Sku $SKU
 
 # Step 5: Assign the back end VMs to the loadbalancer
-
 $VMs = Get-AzVM | Out-GridView -PassThru -Title "Select your WVD hosts"
 
 foreach ($vm in $VMs) {
@@ -57,9 +57,10 @@ foreach ($vm in $VMs) {
 }
 
 # Step 6: Assign the outbound SNAT rules
-$slb | Add-AzLoadBalancerOutboundRuleConfig -Name $ELBOutboundRulename -FrontendIpConfiguration $slb.FrontendIpConfigurations[0] -BackendAddressPool $slb.BackendAddressPools[0] -Protocol "All"
+$myelb = Get-AzLoadBalancer -Name $slb.Name
+$myelb | Add-AzLoadBalancerOutboundRuleConfig -Name $ELBOutboundRulename -FrontendIpConfiguration $frontend -BackendAddressPool $backendAddressPool -Protocol "All"
 
-# Step 7: Update the load balancer
-$slb | Set-AzLoadBalancer
+# Step 7: Configure the loadbalancer
+$myelb | Set-AzLoadBalancer
 
 #endregion
