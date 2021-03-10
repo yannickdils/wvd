@@ -32,7 +32,7 @@ $ELBOutboundRulename = $ELBname + $OutboundRuleConvention
 
 #region loadbalancer deployment
 
-# Step 1: Create a new statit public IP address
+# Step 1: Create a new static public IP address
 $publicip = New-AzPublicIpAddress -ResourceGroupName $ELBResourceGroup -name $ELBpip -Location $ELBlocation -AllocationMethod Static -Sku $SKU
 
 # Step 2: Create a new front end pool configuration and assign the public IP
