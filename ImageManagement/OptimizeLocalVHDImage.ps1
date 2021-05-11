@@ -12,7 +12,7 @@ function PrepareVM {
     $routes = route.exe print
 
     Write-Host "Removing Static Routes"
-    route.exe delete *
+    #route.exe delete *
     
     Write-Host "Removing WinHTTP proxy"
     netsh.exe winhttp reset proxy
