@@ -12,7 +12,7 @@ $VMname = "ws20h2"
 $VMPath = "C:\HyperV\$($VMname)"
 
 $DownloadURI = ""
-$InstallMedia = 'C:\Users\thebossman\Downloads\Windows_InsiderPreview_Server_vNext_en-us_20344.iso'
+$InstallMedia = ""
 
 
 $VMSwitch = New-VMSwitch -Name $Switchname -SwitchType Internal
