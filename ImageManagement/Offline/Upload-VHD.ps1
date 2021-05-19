@@ -127,6 +127,10 @@ $imageConfig = New-AzImageConfig -Location $location
 # Set the Azure Image OS Disk configuration
 $imageConfig = Set-AzImageOsDisk -Image $imageConfig -OsState Generalized -OsType Windows -ManagedDiskId $diskID
 
+# Revoke Disk Access
+Revoke-AzDiskAccess -ResourceGroupName $rgname -DiskName $diskname 
+
+
 # Create the actual new Azure Image
 New-AzImage -ImageName $imageName -ResourceGroupName $rgName -Image $imageConfig
 
