@@ -57,6 +57,7 @@ $AzCopyDirectory = $AZCopyLocation + "\" + $AzCopyPath.Name
 $env:Path += ";$($AzCopyDirectory)"         
 
 #Download / Import AZPoShCmdlets
+Install-Module Az -force
 Import-Module Az
 
 #Import Hyper-V PoshCMDlets
