@@ -8,7 +8,6 @@
 $imagegallery = Get-AzGallery | Out-GridView -Title "Select the SIG you want to use" -PassThru
 $imagegallerydefinitioninfo = Get-AzGalleryImageDefinition -GalleryName $imagegallery.Name -ResourceGroupName $imagegallery.ResourceGroupName | Out-GridView -Title "Select the SIG Definition" -PassThru
 $imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -ResourceGroupName $imagegallery.ResourceGroupName -GalleryImageDefinitionName $imagegallerydefinitioninfo.Name
-$defaultscripturi = "https://aspexlandingzones.blob.core.windows.net/aib/win2022_preview_proplus_clean.ps1?sp=r&st=2021-05-05T07:19:18Z&se=2030-06-05T15:19:18Z&spr=https&sv=2020-02-10&sr=b&sig=%2FeOvuJkollmOrihPbQkhszQLBaoYnVQZBA04qnoyztU%3D"
 
 $imageversion = "1.0.7"
 
