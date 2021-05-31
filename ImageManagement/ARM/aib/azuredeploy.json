@@ -1,0 +1,121 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ScriptUri": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of basic powershell scripts to customize your image"
+            }
+        },
+        "UserAssignedId": {
+            "type": "string"
+        },
+        "SigResourceId": {
+            "type": "string"
+        },
+        "SigImageDefinition": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the SIG image"
+            }
+        },
+        "SigImageVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Version of the SIG image"
+            }
+        },
+        //        "SubnetID": {
+        //            "type": "string",
+        //            "metadata": {
+        //                "description": "Subnet where to mount the "
+        //            }
+        //        },
+        //        "planName": {
+        //            "type": "string",
+        //            "metadata": {
+        //                "description": "PlanName of the platform image"
+        //            }
+        //        },
+        //        "planProduct": {
+        //            "type": "string",
+        //            "metadata": {
+        //                "description": "PlanProduct of the platform image"
+        //            }
+        //        },
+        //        "planPublisher": {
+        //            "type": "string",
+        //            "metadata": {
+        //                "description": "PlanPublisher of the platform image"
+        //            }
+        //        },
+        "SigSourceImageID": {
+            "type": "string",
+            "metadata": {
+                "description": "The source Image ID that will be used to create the image"
+            }
+        }
+    },
+    "variables": {
+        "imageTemplateName": "[concat(parameters('SigImageDefinition'),'_',parameters('SigImageVersion'))]",
+        "SIGId": "[concat(parameters('SigResourceId'),'/images/',parameters('SigImageDefinition'),'/versions/',parameters('SigImageVersion'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('imageTemplateName')]",
+            "type": "Microsoft.VirtualMachineImages/imageTemplates",
+            "apiVersion": "2020-02-14",
+            "location": "[resourcegroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "buildTimeoutInMinutes": 100,
+                "source": {
+                    "type": "SharedImageVersion",
+                    "imageVersionId": "[parameters('SigSourceImageID')]"
+                },
+                "vmProfile": {
+                    "vmSize": "Standard_D4_v3",
+                },
+                "customize": [
+                    {
+                        "type": "PowerShell",
+                        "runElevated": true,
+                        "runAsSystem": true,
+                        "name": "settingUpMgmtAgtPath",
+                        "inline": [
+                            "mkdir c:\\buildActions2",
+                            "echo Azure-Image-Builder-Was-Here  > c:\\buildActions2\\buildActionsOutput.txt"
+                        ]
+                    }
+                ],
+                "distribute": [
+                    {
+                        "type": "SharedImage",
+                        "galleryImageId": "[variables('SIGId')]",
+                        "runOutputName": "AIBSIG",
+                        "artifactTags": {
+                            "source": "azureVmImageBuilder"
+                        },
+                        "replicationRegions": [
+                            "West Europe",
+                            "North Europe"
+                        ]
+                    }
+                ]
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "UserAssignedIdentities": {
+                    "[parameters('UserAssignedId')]": {}
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "ImageTemplateName": {
+            "type": "string",
+            "value": "[variables('imageTemplateName')]"
+        }
+    }
+}

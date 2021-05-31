@@ -1,0 +1,255 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "LocalAdminUser": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of local admin"
+            }
+        },
+        "LocalAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Pwd of local admins"
+            }
+        },
+        "VMPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of new VM vms eg VMhost"
+            }
+        },
+        "VMSeries": {
+            "type": "string",
+            "metadata": {
+                "description": "Serie of required VM hosts"
+            }
+        },
+        "VMCount": {
+            "type": "int",
+            "metadata": {
+                "description": "Count of required VM hosts"
+            }
+        },
+        "VMOffset": {
+            "type": "int",
+            "metadata": {
+                "description": "How many of these vm's already exist?"
+            }
+        },
+        "VMStorageType": {
+            "type": "string",
+            "allowedValues": [ "Standard_LRS", "Standard_ZRS", "Premium_LRS" ],
+            "metadata": {
+                "description": "Storagetype for VM disk"
+            }
+        },
+        "SubnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "ResourceID of subnet to join vm to"
+            }
+        },
+        "omsworkspaceresourceid": {
+            "type": "string",
+            "metadata": {
+                "description": "ResourceID of OMS workspace"
+            }
+        },
+        "licenseType": {
+            "type": "string",
+            "allowedValues": [ "Windows_Client", "Windows_Server" ],
+            "metadata": {
+                "description": "description"
+            }
+        },
+        "imageReference": {
+            "type": "object",
+            "metadata": {
+                "description": "description"
+            }
+        }
+    },
+    "variables": {
+        "vm": {
+            "prefix": "[parameters('VMPrefix')]",
+            "count": "[parameters('VMCount')]",
+            "offset": "[add(1,parameters('VMOffset'))]",
+            "availabilityset": {
+                "name": "[concat(parameters('VMPrefix'),if(endsWith(parameters('VMPrefix'), '-'),'as','-as'))]",
+                "sku": "Aligned",
+                "platformupdatedomaincount": 20,
+                "platformfaultdomaincount": 3
+            },
+            "nic": {
+                "ipconfig": {
+                    "name": "ipconfig1",
+                    "privateipallocationmethod": "Dynamic",
+                    "subnetid": "[parameters('SubnetId')]"
+                }
+            },
+            "vmsize": "[parameters('VMSeries')]",
+            "adminuser": "[parameters('LocalAdminUser')]",
+            "adminpassword": "[parameters('LocalAdminPassword')]",
+            "storageaccounttype": "[parameters('VMStorageType')]",
+            "licenseType": "[parameters('licenseType')]",
+            "imagereference": "[parameters('imageReference')]"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/availabilitySets",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('vm').availabilityset.name]",
+            "properties": {
+                "PlatformUpdateDomainCount": "[variables('vm').availabilityset.platformupdatedomaincount]",
+                "PlatformFaultDomainCount": "[variables('vm').availabilityset.platformfaultdomaincount]"
+            },
+            "sku": {
+                "name": "[variables('vm').availabilityset.sku]"
+            }
+        },
+        {
+            "apiVersion": "2016-09-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)), '-nic')]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-nic-loop",
+                "count": "[variables('vm').count]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[variables('vm').nic.ipconfig.name]",
+                        "properties": {
+                            "privateIPAllocationMethod": "[variables('vm').nic.ipconfig.privateipallocationmethod]",
+                            "subnet": {
+                                "id": "[variables('vm').nic.ipconfig.subnetid]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2020-06-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-vm-loop",
+                "count": "[variables('vm').count]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)), '-nic')]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('vm').availabilityset.name)]"
+            ],
+            "properties": {
+                "licenseType": "[variables('vm').licenseType]",
+                "hardwareProfile": {
+                    "vmSize": "[variables('vm').vmsize]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets/', variables('vm').availabilityset.name)]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]",
+                    "adminUsername": "[variables('vm').adminuser]",
+                    "adminPassword": "[variables('vm').adminpassword]"
+                },
+                "storageProfile": {
+                    "imageReference": "[variables('vm').imagereference]",
+                    "osDisk": {
+                        "name": "[concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)),'_c')]",
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('vm').storageaccounttype]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            },
+            "resources": [
+                {                    
+                    "name": "AzureMonitorWindowsAgent",
+                    "apiVersion": "2015-06-15",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]"
+                    ],
+                    "properties": {
+                        "autoUpgradeMinorVersion": false,
+                        "provisioningState": "Succeeded",
+                        "publisher": "Microsoft.Azure.Monitor",
+                        "type": "AzureMonitorWindowsAgent",
+                        "typeHandlerVersion": "1.0"
+                    }
+                },
+                {
+                    "name": "MicrosoftMonitoringAgent",
+                    "apiVersion": "2015-06-15",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "AzureMonitorWindowsAgent",
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                        "type": "MicrosoftMonitoringAgent",
+                        "typeHandlerVersion": "1.0",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "workspaceId": "[reference(parameters('omsworkspaceresourceid'), '2017-03-15-preview').customerId]"
+                        },
+                        "protectedSettings": {
+                            "workspaceKey": "[listKeys(parameters('omsworkspaceresourceid'), '2015-03-20').primarySharedKey]"
+                        }
+                    }
+                },
+                {
+                    "name": "DependencyAgent",
+                    "apiVersion": "2019-12-01",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]",
+                        "MicrosoftMonitoringAgent"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                        "type": "DependencyAgentWindows",
+                        "typeHandlerVersion": "9.5",
+                        "autoUpgradeMinorVersion": true
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "vmnames": {
+            "type": "array",
+            "copy": {
+                "count": "[variables('vm').count]",
+                "input": {
+                    "vmname": "[concat(variables('vm').prefix, if(less(copyindex(variables('vm').offset),10),concat('0',copyindex(variables('vm').offset)),copyindex(variables('vm').offset)))]"
+                }
+            }
+        }
+    }
+}
