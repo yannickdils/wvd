@@ -56,25 +56,21 @@
                 "customize": [
                     {
                         "type": "PowerShell",
-                        "name": "InstallApps",
-                        "runElevated": true,
-                        "runAsSystem": true,
-                        "scriptUri": "[parameters('ScriptUri')]"
-                    },
-                    {
-                        "type": "WindowsRestart",
-                        "restartTimeout": "30m"
-                    },
-                    {
-                        "type": "PowerShell",
                         "runElevated": true,
                         "runAsSystem": true,
                         "name": "settingUpMgmtAgtPath",
                         "inline": [
                             "mkdir c:\\buildActions2",
-                            "echo Azure-Image-Builder-Was-Here  > c:\\buildActions2\\buildActionsOutput.txt"
+                            "echo Azure-Image-Builder-Was-Here  > c:\\buildActions2\\buildActionsOutput.txt",
+                            "$ScriptFromGitHub = Invoke-WebRequest [parameters('ScriptUri')]",
+                            "Invoke-Expression $($ScriptFromGitHub.Content)"
                         ]
+                    },
+                                        {
+                        "type": "WindowsRestart",
+                        "restartTimeout": "30m"
                     }
+
                 ],
                 "distribute": [
                     {
