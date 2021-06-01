@@ -9,7 +9,7 @@ $ImageDefinitionSKU = "windows-server-2022"
 
 #endregion
 
-#region Retrieve any existing shared Image Galleries
+#region Retrieve any existing shared Imag Galleries
 
 $gallery = Get-AzGallery | Out-GridView -Title "Select the SIG you want to use" -PassThru
 if ($gallery) {
