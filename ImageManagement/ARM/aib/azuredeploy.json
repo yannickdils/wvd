@@ -26,30 +26,6 @@
                 "description": "Version of the SIG image"
             }
         },
-        //        "SubnetID": {
-        //            "type": "string",
-        //            "metadata": {
-        //                "description": "Subnet where to mount the "
-        //            }
-        //        },
-        //        "planName": {
-        //            "type": "string",
-        //            "metadata": {
-        //                "description": "PlanName of the platform image"
-        //            }
-        //        },
-        //        "planProduct": {
-        //            "type": "string",
-        //            "metadata": {
-        //                "description": "PlanProduct of the platform image"
-        //            }
-        //        },
-        //        "planPublisher": {
-        //            "type": "string",
-        //            "metadata": {
-        //                "description": "PlanPublisher of the platform image"
-        //            }
-        //        },
         "SigSourceImageID": {
             "type": "string",
             "metadata": {
@@ -75,7 +51,7 @@
                     "imageVersionId": "[parameters('SigSourceImageID')]"
                 },
                 "vmProfile": {
-                    "vmSize": "Standard_D4_v3",
+                    "vmSize": "Standard_D8_v3"
                 },
                 "customize": [
                     {
@@ -98,8 +74,8 @@
                             "source": "azureVmImageBuilder"
                         },
                         "replicationRegions": [
-                            "West Europe",
-                            "North Europe"
+                            "WestEurope",
+                            "NorthEurope"
                         ]
                     }
                 ]

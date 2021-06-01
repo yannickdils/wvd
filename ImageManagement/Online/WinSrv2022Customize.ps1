@@ -1,5 +1,7 @@
 #This is a configuration script that needs to be run on the virtual machine
 
+
+
 #region supporting functions
 function confirm-path {
     Param ([string]$templocation)
