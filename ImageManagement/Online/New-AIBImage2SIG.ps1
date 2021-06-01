@@ -1,17 +1,27 @@
-# Variables
+#region Variables
 
+# Change this URL if you want other Script or Optimization actions to run
+$defaultscripturi = "https://github.com/yannickdils/wvd/blob/main/ImageManagement/Online/WinSrv2022Customize.ps1"
 
-
+# Change this to the version number you want to create
+$imageversion = "1.1.0"
 
 # Retrieve Shared Image Gallery Details
 
 $imagegallery = Get-AzGallery | Out-GridView -Title "Select the SIG you want to use" -PassThru
 $imagegallerydefinitioninfo = Get-AzGalleryImageDefinition -GalleryName $imagegallery.Name -ResourceGroupName $imagegallery.ResourceGroupName | Out-GridView -Title "Select the SIG Definition" -PassThru
-$imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -ResourceGroupName $imagegallery.ResourceGroupName -GalleryImageDefinitionName $imagegallerydefinitioninfo.Name
+$imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -ResourceGroupName $imagegallery.ResourceGroupName -GalleryImageDefinitionName $imagegallerydefinitioninfo.Name | Out-GridView -Title "Select the SIG Image Version" -PassThru
 
-$imageversion = "1.0.8"
+# Retrieve Managed User Identity
 
 $ManagedIdentity = Get-AzUserAssignedIdentity -ResourceGroupName $imagegallery.ResourceGroupName | Out-GridView -Title "Please select the User Assigned Identity" -PassThru
+
+#endregion
+
+#region Start Create Template
+
+
+# Create ARM parameters
 
 $armfile = Join-Path "." -ChildPath "ImageManagement" -AdditionalChildPath  "arm", "aib", "azuredeploy.json" | Get-Item
 $armparamfile = Join-Path "." -ChildPath "ImageManagement" -AdditionalChildPath  "arm","aib", "azuredeploy.parameters.json" | Get-Item
@@ -24,14 +34,22 @@ $armparamobject.parameters.SigImageVersion.value = $imageversion
 $armparamobject.parameters.UserAssignedId.value = $ManagedIdentity.Id
 $armparamobject.parameters.SigSourceImageID.value = $imagegalleryinfo.Id
 
-$bogusparameterobject = @{ }
-$armparamobject.parameters.keys | ForEach-Object { $bogusparameterobject[$_] = $armparamobject.parameters[$_]['value'] }
-$Deploy_HUBWVDImageTemplate = New-AzResourceGroupDeployment -ResourceGroupName $imagegallery.ResourceGroupName -Name "HUBWVDImageTemplate2" -TemplateFile $armfile -TemplateParameterObject $bogusparameterobject
+$paramobject = @{ }
+$armparamobject.parameters.keys | ForEach-Object { $paramobject[$_] = $armparamobject.parameters[$_]['value'] }
 
-$imageTemplateName = "WinSrv2022Datacenter_1.0.8"
-# Start Build
+# Define Image Template Name
 
-Start-AzImageBuilderTemplate -ResourceGroupName $imagegallery.ResourceGroupName -Name $imageTemplateName
+$imageTemplateName = $imagegallerydefinitioninfo.Name + "_" + $imageversion
+
+# Deploy ARM Template
+
+$Deploy_HUBWVDImageTemplate = New-AzResourceGroupDeployment -ResourceGroupName $imagegallery.ResourceGroupName -Name $imageTemplateName -TemplateFile $armfile -TemplateParameterObject $paramobject
+
+#endregion
+
+#region Start Build Template
+
+Start-AzImageBuilderTemplate -ResourceGroupName $imagegallery.ResourceGroupName -Name $imageTemplateName -AsJob
 
 $getStatus=$(Get-AzImageBuilderTemplate -ResourceGroupName $imagegallery.ResourceGroupName -Name $imageTemplateName)
 
@@ -43,4 +61,4 @@ $getStatus.LastRunStatusRunState
 $getStatus.LastRunStatusMessage
 $getStatus.LastRunStatusRunSubState
 
-
+#endregion
