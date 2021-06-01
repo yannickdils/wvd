@@ -63,29 +63,3 @@ catch {
 }
 
 #endregion
-
-#region WVD Install
-
-# Agent
-$downloaduri = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
-$selfextracter = "WVDAgent.msi"
-Write-Host "WVD Agent: Downloading the latest release from $($downloaduri.Split("?")[0])"
-Invoke-WebRequest -Uri $DownloadUri -OutFile $selfextracter
-Write-Host "WVD Agent: Downloaded"
-
-Write-Host "WVD Agent: Installing"
-$Installstatus = Start-Process -FilePath "$($selfextracter)" #-ArgumentList @('/q','/w') -Wait -Passthru
-Write-Host "WVD Agent: Installed with statuscode $($Installstatus.ExitCode)"
-
-
-# Agent Bootloader
-$downloaduri = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-$selfextracter = "WVDAgentBootloader.msi"
-Write-Host "WVDAgentBootloader: Downloading the latest release from $($downloaduri.Split("?")[0])"
-Invoke-WebRequest -Uri $DownloadUri -OutFile $selfextracter
-Write-Host "WVDAgentBootloader: Downloaded"
-
-Write-Host "WVDAgentBootloader: Installing"
-$Installstatus = Start-Process -FilePath "$($selfextracter)" #-ArgumentList @('/q','/w') -Wait -Passthru
-Write-Host "WVDAgentBootloader: Installed with statuscode $($Installstatus.ExitCode)"
-

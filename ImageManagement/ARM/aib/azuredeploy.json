@@ -56,6 +56,17 @@
                 "customize": [
                     {
                         "type": "PowerShell",
+                        "name": "InstallApps",
+                        "runElevated": true,
+                        "runAsSystem": true,
+                        "scriptUri": "[parameters('ScriptUri')]"
+                    },
+                    {
+                        "type": "WindowsRestart",
+                        "restartTimeout": "30m"
+                    },
+                    {
+                        "type": "PowerShell",
                         "runElevated": true,
                         "runAsSystem": true,
                         "name": "settingUpMgmtAgtPath",
