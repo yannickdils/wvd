@@ -67,7 +67,6 @@ Import-Module Hyper-V
 
 #endregion
 
-
 #region Convert the disk to a fixed size and vhd format
 
 #Resizing via Hyper-V manager to 128GB and VHD did the trick and pointed out that we need the size in bytes below. Change the size if you require a different OS disk size.
@@ -125,11 +124,10 @@ $diskID = $disk.Id
 $imageConfig = New-AzImageConfig -Location $location
 
 # Set the Azure Image OS Disk configuration
-$imageConfig = Set-AzImageOsDisk -Image $imageConfig -OsState Generalized -OsType Windows -ManagedDiskId $diskID
+$imageConfig = Set-AzImageOsDisk -Image $imageConfig -OsState Generalized -OsType Windows -ManagedDiskId $diskID 
 
 # Revoke Disk Access
 Revoke-AzDiskAccess -ResourceGroupName $rgname -DiskName $diskname 
-
 
 # Create the actual new Azure Image
 New-AzImage -ImageName $imageName -ResourceGroupName $rgName -Image $imageConfig
