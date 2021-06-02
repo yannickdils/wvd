@@ -62,7 +62,7 @@
                         "inline": [
                             "mkdir c:\\buildActions2",
                             "echo Azure-Image-Builder-Was-Here  > c:\\buildActions2\\buildActionsOutput.txt",
-                            "$ScriptFromGitHub = Invoke-WebRequest [parameters('ScriptUri')]",
+                            "[concat('$ScriptFromGitHub = Invoke-WebRequest ',parameters('ScriptUri'),' -UseBasicParsing')]",
                             "Invoke-Expression $($ScriptFromGitHub.Content)"
                         ]
                     },

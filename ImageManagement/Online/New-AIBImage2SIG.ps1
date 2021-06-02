@@ -4,7 +4,7 @@
 $defaultscripturi = "https://github.com/yannickdils/wvd/blob/main/ImageManagement/Online/WinSrv2022Customize.ps1"
 
 # Change this to the version number you want to create
-$imageversion = "1.1.0"
+$imageversion = "1.1.4"
 
 # Retrieve Shared Image Gallery Details
 
