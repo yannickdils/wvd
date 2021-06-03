@@ -1,10 +1,10 @@
 #region Variables
 
 # Change this URL if you want other Script or Optimization actions to run
-$defaultscripturi = "https://github.com/yannickdils/wvd/blob/main/ImageManagement/Online/WinSrv2022Customize.ps1"
+$defaultscripturi = "https://raw.githubusercontent.com/yannickdils/wvd/main/ImageManagement/Online/WinSrv2022Customize.ps1"
 
 # Change this to the version number you want to create
-$imageversion = "1.1.4"
+$imageversion = "1.1.6"
 
 # Retrieve Shared Image Gallery Details
 
