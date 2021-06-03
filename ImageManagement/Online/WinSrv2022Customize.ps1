@@ -17,7 +17,7 @@ function confirm-path {
 #endregion
 
 #region add RDS Host role
-Install-WindowsFeature -Name Remote-Desktop-Services 
+Install-WindowsFeature -Name rds-rd-server
 
 #endregion
 
