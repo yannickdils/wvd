@@ -60,8 +60,6 @@
                         "runAsSystem": true,
                         "name": "settingUpMgmtAgtPath",
                         "inline": [
-                            "mkdir c:\\buildActions2",
-                            "echo Azure-Image-Builder-Was-Here  > c:\\buildActions2\\buildActionsOutput.txt",
                             "[concat('$ScriptFromGitHub = Invoke-WebRequest ',parameters('ScriptUri'),' -UseBasicParsing')]",
                             "Invoke-Expression $($ScriptFromGitHub.Content)"
                         ]
@@ -69,6 +67,16 @@
                                         {
                         "type": "WindowsRestart",
                         "restartTimeout": "30m"
+                    },
+                    {
+                         "type": "PowerShell",
+                        "runElevated": true,
+                        "runAsSystem": true,
+                        "name": "Retry failed attempts",
+                        "inline": [
+                            "[concat('$ScriptFromGitHub = Invoke-WebRequest ',parameters('ScriptUri'),' -UseBasicParsing')]",
+                            "Invoke-Expression $($ScriptFromGitHub.Content)"
+                        ]
                     }
 
                 ],
