@@ -64,12 +64,12 @@
                             "Invoke-Expression $($ScriptFromGitHub.Content)"
                         ]
                     },
-                                        {
+                    {
                         "type": "WindowsRestart",
                         "restartTimeout": "30m"
                     },
                     {
-                         "type": "PowerShell",
+                        "type": "PowerShell",
                         "runElevated": true,
                         "runAsSystem": true,
                         "name": "Retry failed attempts",
@@ -77,8 +77,14 @@
                             "[concat('$ScriptFromGitHub = Invoke-WebRequest ',parameters('ScriptUri'),' -UseBasicParsing')]",
                             "Invoke-Expression $($ScriptFromGitHub.Content)"
                         ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "installFsLogix",
+                        "runElevated": true,
+                        "runAsSystem": true,
+                        "scriptUri": "https://raw.githubusercontent.com/azure/azvmimagebuilder/master/solutions/14_Building_Images_WVD/0_installConfFsLogix.ps1"
                     }
-
                 ],
                 "distribute": [
                     {
