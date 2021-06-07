@@ -5,10 +5,10 @@ $imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -R
 
 $MyImage = $imagegalleryinfo 
 $ResourceGroup = $MyImage.ResourceGroupName
-$vmprefix = "rds2022" # Enter the virtual machine prefix (something like wvd, dc, app)
+$vmprefix = "rdshost2022" # Enter the virtual machine prefix (something like wvd, dc, app)
 $vmsize = "Standard_D4s_v3"
 $vmcount = "1" # Enter the amount of virtual machine you like
-$vmoffset = "2" # Enter the start number of your virtual machine
+$vmoffset = "0" # Enter the start number of your virtual machine
 $vmstorage = "Premium_LRS" #Enter the storage type
 $localuser = "thebossman" # Enter a local username
 $localuserpwd = Read-Host "Enter a local password" # Enter a local password
