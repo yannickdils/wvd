@@ -36,7 +36,7 @@ $uri = "https://github.com/yannickdils/wvd/raw/main/ImageManagement/Online/WVDOp
 $outputzip = "${ImageFolder}WVDOptimizer.zip"
 Invoke-WebRequest -Uri $uri -OutFile $outputzip
 Expand-Archive -Path $outputzip -DestinationPath $ImageFolder -Force
-.\OptimizeMe.ps1
+C:\ImageBuilder\OptimizeMe.ps1
 Write-Host "ImagebuilderDefault: Ended WVDOptimizer"
 #endregion
 
