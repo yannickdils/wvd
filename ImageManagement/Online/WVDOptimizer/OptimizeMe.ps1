@@ -44,7 +44,7 @@ Param
 <#
 - TITLE:          Microsoft Windows 10 Virtual Desktop Optimization Script
 - AUTHORED BY:    Robert M. Smith and Tim Muessig (Microsoft)
-- ALTERED BY: Yannick Dils
+- ALTERED BY:     Yannick Dils
 - AUTHORED DATE:  11/19/2019
 - LAST UPDATED:   07/06/2021
 - PURPOSE:        To automatically apply settings referenced in the following white papers:
@@ -285,25 +285,3 @@ Write-Host "Total Run Time: $($ScriptRunTime.Hours) Hours $($ScriptRunTime.Minut
 # Added deactivation of windows firewall - JETHRO
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 $error.Clear()
-
-#Commented reboot -> imagebuilder takes care of reboot - JETHRO
-<#
-If ($Restart)
-{
-    Restart-Computer -Force -Confirm:$False
-}
-else
-{
-    Write-Warning "A reboot is required for all changed to take effect"
-}
-#>
-#Add-Type -AssemblyName PresentationFramework
-#$Answer = [System.Windows.MessageBox]::Show("Reboot to make changes effective?", "Restart Computer", "YesNo", "Question")
-#Switch ($Answer)
-#{
-#    "Yes" { Write-Warning "Restarting Computer in 15 Seconds"; Start-sleep -seconds 15; Restart-Computer -Force }
-#    "No" { Write-Warning "A reboot is required for all changed to take effect" }
-#    Default { Write-Warning "A reboot is required for all changed to take effect" }
-#}
-
-########################  END OF SCRIPT  ########################
