@@ -1,3 +1,10 @@
+#region subscription context
+
+$context = Get-AzSubscription | Out-GridView -Title "Select the subscription you want to set in context" -PassThru
+Set-AzContext -Subscription $context
+
+#endregion
+
 #region Variables
 
 # Change this URL if you want other Script or Optimization actions to run

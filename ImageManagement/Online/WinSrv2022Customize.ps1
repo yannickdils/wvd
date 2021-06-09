@@ -1,7 +1,5 @@
 #This is a configuration script that needs to be run on the virtual machine
 
-
-
 #region supporting functions
 function confirm-path {
     Param ([string]$templocation)
@@ -19,5 +17,28 @@ function confirm-path {
 #region add RDS Host role
 
 Install-WindowsFeature -Name rds-rd-server
+
+#endregion
+
+#region Azure Virtual Desktop Optimizer 
+    
+$ImageFolder = "C:\ImageBuilder\"
+
+If (!(Test-Path $ImageFolder)) {
+    Write-Host "ImagebuilderDefault: ${ImageFolder} does not exist, creating it right now"
+    New-Item $ImageFolder -ItemType Directory | Out-Null
+    Write-Host "ImagebuilderDefault: ${ImageFolder} created"
+}
+
+Write-Host "ImagebuilderDefault: Starting WVDOptimizer"
+Set-Location $ImageFolder
+$uri = "${BlobLocation}WVDOptimizer.zip${sastoken}"
+$outputzip = "${ImageFolder}WVDOptimizer.zip"
+Invoke-WebRequest -Uri $uri -OutFile $outputzip
+Expand-Archive -Path $outputzip -DestinationPath $ImageFolder -Force
+.\OptimizeMe.ps1
+Write-Host "ImagebuilderDefault: Ended WVDOptimizer"
+#endregion
+
 
 #endregion
