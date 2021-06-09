@@ -32,7 +32,7 @@ If (!(Test-Path $ImageFolder)) {
 
 Write-Host "ImagebuilderDefault: Starting WVDOptimizer"
 Set-Location $ImageFolder
-$uri = "${BlobLocation}WVDOptimizer.zip${sastoken}"
+$uri = "https://github.com/yannickdils/wvd/raw/main/ImageManagement/Online/WVDOptimizer.zip"
 $outputzip = "${ImageFolder}WVDOptimizer.zip"
 Invoke-WebRequest -Uri $uri -OutFile $outputzip
 Expand-Archive -Path $outputzip -DestinationPath $ImageFolder -Force
