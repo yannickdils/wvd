@@ -84,7 +84,11 @@
                         "runElevated": true,
                         "runAsSystem": true,
                         "scriptUri": "https://raw.githubusercontent.com/azure/azvmimagebuilder/master/solutions/14_Building_Images_WVD/0_installConfFsLogix.ps1"
-                    }
+                    },
+                      {
+                        "type": "WindowsRestart",
+                        "restartTimeout": "30m"
+                    },
                 ],
                 "distribute": [
                     {
