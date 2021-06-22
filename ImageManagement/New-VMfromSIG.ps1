@@ -5,7 +5,7 @@ $imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -R
 
 $MyImage = $imagegalleryinfo 
 $ResourceGroup = $MyImage.ResourceGroupName
-$vmprefix = "rdshost2022" # Enter the virtual machine prefix (something like wvd, dc, app)
+$vmprefix = "rdshost22v06" # Enter the virtual machine prefix (something like wvd, dc, app)
 $vmsize = "Standard_D4s_v3"
 $vmcount = "1" # Enter the amount of virtual machine you like
 $vmoffset = "0" # Enter the start number of your virtual machine
