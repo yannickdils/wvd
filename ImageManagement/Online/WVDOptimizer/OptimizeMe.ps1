@@ -83,7 +83,6 @@ The Store and a few others, such as Wallet, were left off intentionally.  Though
 it is nearly impossible to get it back.  Please review the lists below and comment out or remove references to packages that you do not want to remove.
 #>
 
-#Added check if running on vm so you won't f up your local machine on accident - JETHRO
 If ((get-wmiobject win32_computersystem).Model -ne "Virtual Machine") {
     Write-Warning "$($env:computername) is not a virtual machine"
     Exit 251
@@ -115,7 +114,6 @@ Catch { }
 #endregion
 
 #region Begin Clean APPX Packages
-# Enabled Microsoft.Windows.Photos, Microsoft.WindowsCalculator, Microsoft.MSPaint, Microsoft.GetHelp, Microsoft.Getstarted, Microsoft.MicrosoftOfficeHub, Microsoft.Office.OneNote - JETHRO
 If (Test-Path .\ConfigurationFiles\AppxPackages.json) {
     $AppxPackage = Get-Content .\ConfigurationFiles\AppxPackages.json | ConvertFrom-Json
     $AppxPackage = $AppxPackage | Where-Object { $_.VDIState -eq 'Disabled' }
@@ -127,9 +125,6 @@ If ($AppxPackage.Count -gt 0) {
         Write-Host "Attempting to remove $($Item.AppxPackage) - $($Item.Description)"
         Get-AppxPackage -Name $Package | Remove-AppxPackage -ErrorAction SilentlyContinue  | Out-Null
 
-        #Write-Verbose "`t`tAttempting to remove [All Users] $($Item.AppxPackage) - $($Item.Description)"
-        #Get-AppxPackage -AllUsers -Name $Package | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-
         Write-Host "`t`tRemoving Provisioned Package $($item.AppxPackage)"
         Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like $Package } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
     }
@@ -139,7 +134,7 @@ If ($AppxPackage.Count -gt 0) {
 #region Disable Scheduled Tasks
 # This section is for disabling scheduled tasks.  If you find a task that should not be disabled
 # change its "VDIState" from Disabled to Enabled, or remove it from the json completely.
-# Enabled StartComponentCleanup - JETHRO
+
 If (Test-Path .\ConfigurationFiles\ScheduledTasks.json) {
     $SchTasksList = Get-Content .\ConfigurationFiles\ScheduledTasks.json | ConvertFrom-Json
     $SchTasksList = $SchTasksList | Where-Object { $_.VDIState -eq 'Disabled' }
@@ -158,7 +153,7 @@ If ($SchTasksList.count -gt 0) {
 #region Customize Default User Profile
 # Apply appearance customizations to default user registry hive, then close hive file
 # Changed script to only import uncommented lines + excluded microsoft.photos settings
-# Added txt in 2009, just like in 2004. Json way gave issues - JETHRO
+
 If (Test-Path .\ConfigurationFiles\DefaultUserSettings.txt) {
     $DefaultUserSettings = Get-Content .\ConfigurationFiles\DefaultUserSettings.txt
 }
@@ -173,8 +168,7 @@ If ($DefaultUserSettings.count -gt 0) {
 #endregion
 
 #region Disable Windows Traces
-# Removed RadioMgr -> no permissions to write this registryitem - JETHRO
-# Added silentycontinue -> sometimes access denied for no reason - JETHRO
+
 If (Test-Path .\ConfigurationFiles\Autologgers.Json) {
     $DisableAutologgers = Get-Content .\ConfigurationFiles\Autologgers.Json | ConvertFrom-Json
 }
@@ -202,7 +196,7 @@ if (Test-Path (Join-Path $PSScriptRoot "LGPO\LGPO.exe")) {
 #endregion
 
 #region Disable Services
-# Enabled OneSyncSvc, VSS, WSearch - JETHRO
+
 If (Test-Path .\ConfigurationFiles\Services.json) {
     $ServicesToDisable = Get-Content .\ConfigurationFiles\Services.json | ConvertFrom-Json
 }
@@ -227,12 +221,7 @@ New-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\LanmanWorkstatio
 New-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\LanmanWorkstation\Parameters\" -Name "FileNotFoundCacheEntriesMax" -PropertyType "DWORD" -Value "1024" -Force | Out-Null
 New-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\LanmanWorkstation\Parameters\" -Name "DormantFileLimit" -PropertyType "DWORD" -Value "256" -Force | Out-Null
 
-# Removed buffer size change to 4MB because this breaks the imagebuilder connection and thus imagebuilder fails - JETHRO
 # NIC Advanced Properties performance settings for network biased environments
-<#
-Write-Host "Configuring Network Adapter Buffer Size"
-Set-NetAdapterAdvancedProperty -DisplayName "Send Buffer Size" -DisplayValue 4MB
-#>
 
 <# Note that the above setting is for a Microsoft Hyper-V VM.  You can adjust these values in your environment...
 by querying in PowerShell using Get-NetAdapterAdvancedProperty, and then adjusting values using the...
@@ -245,7 +234,6 @@ Set-NetAdapterAdvancedProperty command.
 # Delete not in-use files in locations C:\Windows\Temp and %temp%
 # Also sweep and delete *.tmp, *.etl, *.evtx, *.log, *.dmp, thumbcache*.db (not in use==not needed)
 # 5/18/20: Removing Disk Cleanup and moving some of those tasks to the following manual cleanup
-# Removed *.log from removed extensions - Jethro
 
 Write-Host "Removing .tmp, .etl, .evtx, thumbcache*.db files not in use"
 Get-ChildItem -Path c:\ -Include *.tmp, *.dmp, *.etl, *.evtx, thumbcache*.db -File -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -ErrorAction SilentlyContinue
@@ -282,6 +270,6 @@ $EndTime = Get-Date
 $ScriptRunTime = New-TimeSpan -Start $StartTime -End $EndTime
 Write-Host "Total Run Time: $($ScriptRunTime.Hours) Hours $($ScriptRunTime.Minutes) Minutes $($ScriptRunTime.Seconds) Seconds" -ForegroundColor Cyan
 
-# Added deactivation of windows firewall - JETHRO
+# Added deactivation of windows firewall
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 $error.Clear()
