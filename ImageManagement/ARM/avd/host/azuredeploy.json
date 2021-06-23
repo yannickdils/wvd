@@ -1,0 +1,356 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hostpoolName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Hostpool to be created."
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located."
+            },
+            "defaultValue": "https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip"
+        },
+        "LocalAdminUser": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of local admin"
+            }
+        },
+        "LocalAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Pwd of local admins"
+            }
+        },
+        "DomainAdminUpn": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of domain admin"
+            }
+        },
+        "DomainAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Pwd of domain admin"
+            }
+        },
+        "Domainname": {
+            "type": "string",
+            "metadata": {
+                "description": "fqdn of domain, eg contoso.com"
+            }
+        },
+        "WVDOU": {
+            "type": "string",
+            "metadata": {
+                "description": "DN of OU"
+            }
+        },
+        "WVDPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of new WVD vms eg wvdhost"
+            }
+        },
+        "WVDSeries": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "metadata": {
+                "description": "Serie of required WVD hosts"
+            }
+        },
+        "WVDCount": {
+            "type": "int",
+            "metadata": {
+                "description": "Count of required WVD hosts"
+            }
+        },
+        "Registrationtoken": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostpool registrationtoken"
+            }
+        },
+        "WVDVMOffset": {
+            "type": "int",
+            "metadata": {
+                "description": "How many of these vm's already exist?"
+            }
+        },
+        "WVDVMStorageType": {
+            "type": "string",
+            "defaultValue": "Premium_LRS",
+            "metadata": {
+                "description": "Storagetype for VM disk"
+            }
+        },
+        "SubnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "ResourceID of subnet to join vm to"
+            }
+        },
+        "galleryName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the SIG"
+            }
+        },
+        "galleryImageDefinitionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the SIG image definition"
+            }
+        },
+        "galleryImageVersionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the SIG image definition version"
+            }
+        },
+        "omsworkspaceresourceid": {
+            "type": "string",
+            "metadata": {
+                "description": "ResourceID of OMS workspace"
+            }
+        },
+        "gpu": {
+            "type": "bool"
+        }
+    },
+    "variables": {
+        "oms": {
+            "resourceid": "[parameters('omsworkspaceresourceid')]"
+        },
+        "vms": {
+            "rdsh": {
+                "prefix": "[parameters('WVDPrefix')]",
+                "count": "[parameters('WVDCount')]",
+                "offset": "[add(1,parameters('WVDVMOffset'))]",
+                "availabilityset": {
+                    "name": "[concat(parameters('WVDPrefix'),'-as')]",
+                    "sku": "Aligned",
+                    "platformupdatedomaincount": 20,
+                    "platformfaultdomaincount": 3
+                },
+                "nic": {
+                    "ipconfig": {
+                        "name": "ipconfig1",
+                        "privateipallocationmethod": "Dynamic",
+                        "subnetid": "[parameters('SubnetId')]"
+                    }
+                },
+                "vmsize": "[parameters('WVDSeries')]",
+                "adminuser": "[parameters('LocalAdminUser')]",
+                "adminpassword": "[parameters('LocalAdminPassword')]",
+                "imageresourceid": "[resourceId('Microsoft.Compute/galleries/images/versions', parameters('galleryName'), parameters('galleryImageDefinitionName'), parameters('galleryImageVersionName'))]",
+                "storageaccounttype": "[parameters('WVDVMStorageType')]",
+                "dsc": {
+                    "version": "2.77",
+                    "configuration": "configuration.ps1",
+                    "configurationfunction": "AddToHostpool"
+                },
+                "registrationtoken": "[parameters('Registrationtoken')]",
+                "computerou": "[if(equals(parameters('WVDOU'),'default'),json('null'),parameters('WVDOU'))]",
+                "gpu": "[parameters('gpu')]"
+            }
+        },
+        "aadds": {
+            "domainname": "[parameters('Domainname')]",
+            "domainadmin": "[parameters('DomainAdminUpn')]",
+            "domainpassword": "[parameters('DomainAdminPassword')]"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/availabilitySets",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('vms').rdsh.availabilityset.name]",
+            "properties": {
+                "PlatformUpdateDomainCount": "[variables('vms').rdsh.availabilityset.platformupdatedomaincount]",
+                "PlatformFaultDomainCount": "[variables('vms').rdsh.availabilityset.platformfaultdomaincount]"
+            },
+            "sku": {
+                "name": "[variables('vms').rdsh.availabilityset.sku]"
+            }
+        },
+        {
+            "apiVersion": "2016-09-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)), '-nic')]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-nic-loop",
+                "count": "[variables('vms').rdsh.count]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[variables('vms').rdsh.nic.ipconfig.name]",
+                        "properties": {
+                            "privateIPAllocationMethod": "[variables('vms').rdsh.nic.ipconfig.privateipallocationmethod]",
+                            "subnet": {
+                                "id": "[variables('vms').rdsh.nic.ipconfig.subnetid]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2020-06-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-vm-loop",
+                "count": "[variables('vms').rdsh.count]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)), '-nic')]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('vms').rdsh.availabilityset.name)]"
+            ],
+            "properties": {
+                "licenseType": "Windows_Client",
+                "hardwareProfile": {
+                    "vmSize": "[variables('vms').rdsh.vmsize]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets/', variables('vms').rdsh.availabilityset.name)]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]",
+                    "adminUsername": "[variables('vms').rdsh.adminuser]",
+                    "adminPassword": "[variables('vms').rdsh.adminpassword]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "id": "[variables('vms').rdsh.imageresourceid]"
+                    },
+                    "osDisk": {
+                        "name": "[concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)),'_c')]",
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('vms').rdsh.storageaccounttype]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-06-15",
+                    "type": "extensions",
+                    "name": "joindomain",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Compute",
+                        "type": "JsonADDomainExtension",
+                        "typeHandlerVersion": "1.3",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "name": "[variables('aadds').domainname]",
+                            "oupath": "[variables('vms').rdsh.computerou]",
+                            "user": "[variables('aadds').domainadmin]",
+                            "restart": "true",
+                            "options": "3"
+                        },
+                        "protectedSettings": {
+                            "password": "[variables('aadds').domainpassword]"
+                        }
+                    }
+                },
+                {
+                    "name": "omsextension",
+                    "apiVersion": "2015-06-15",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]",
+                        "joindomain"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                        "type": "MicrosoftMonitoringAgent",
+                        "typeHandlerVersion": "1.0",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "workspaceId": "[reference(variables('oms').resourceid, '2017-03-15-preview').customerId]"
+                        },
+                        "protectedSettings": {
+                            "workspaceKey": "[listKeys(variables('oms').resourceid, '2015-03-20').primarySharedKey]"
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2018-10-01",
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "name": "[concat(variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)), '/', 'Microsoft.PowerShell.DSC')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]",
+                        "omsextension"
+                    ],
+                    //  "copy": {
+                    //      "name": "rdsh-dsc-loop",
+                    //      "count": "[variables('vms').rdsh.count]"
+                    //  },
+                    "properties": {
+                        "publisher": "Microsoft.Powershell",
+                        "type": "DSC",
+                        "typeHandlerVersion": "2.73",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "modulesUrl": "[parameters('artifactsLocation')]",
+                            "configurationFunction": "Configuration.ps1\\AddSessionHost",
+                            "properties": {
+                                "hostPoolName": "[parameters('hostpoolName')]",
+                                "registrationInfoToken": "[variables('vms').rdsh.registrationtoken]" //,
+                                // "aadJoin": "[parameters('aadJoin')]"
+                            }
+                        }
+                    }
+                },
+                {
+                    "condition": "[equals(variables('vms').rdsh.gpu,true())]",
+                    "name": "AMDDriver",
+                    "type": "extensions",
+                    "apiVersion": "2015-06-15",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('vms').rdsh.prefix, if(less(copyindex(variables('vms').rdsh.offset),10),concat('0',copyindex(variables('vms').rdsh.offset)),copyindex(variables('vms').rdsh.offset)))]" //,
+                        // "wvd"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.HpcCompute",
+                        "type": "AmdGpuDriverWindows",
+                        "typeHandlerVersion": "1.0",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

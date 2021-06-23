@@ -5,7 +5,7 @@ $imagegalleryinfo = Get-AzGalleryImageVersion -GalleryName $imagegallery.Name -R
 
 $MyImage = $imagegalleryinfo 
 $ResourceGroup = $MyImage.ResourceGroupName
-$vmprefix = "rdshost22v06" # Enter the virtual machine prefix (something like wvd, dc, app)
+$vmprefix = "rdshost22v61" # Enter the virtual machine prefix (something like wvd, dc, app)
 $vmsize = "Standard_D4s_v3"
 $vmcount = "1" # Enter the amount of virtual machine you like
 $vmoffset = "0" # Enter the start number of your virtual machine
@@ -23,9 +23,11 @@ $omsworkspace = Get-AzOperationalInsightsWorkspace | Out-GridView -Title "Select
 
 #region ARM deployment
 
+Write-host "Retrieving ARM template and template parameter files"
 $armfile = Join-Path -Path "." -ChildPath 'imagemanagement' -AdditionalChildPath "arm","vm", "azuredeploy.json" | Get-Item
 $armparamfile = Join-Path -Path "." -ChildPath 'imagemanagement' -AdditionalChildPath "arm","vm", "azuredeploy.parameters.json" | Get-Item
 
+Write-host "Setting arm template parameter file variables"
 $armparamobject = Get-Content $armparamfile.FullName | ConvertFrom-Json -AsHashtable
 $armparamobject.parameters.LocalAdminUser.value = $localuser
 $armparamobject.parameters.LocalAdminPassword.value = $localuserpwd
@@ -42,6 +44,7 @@ $armparamobject.parameters.imageReference.value = $imagereference
 $parameterobject = @{ }
 $armparamobject.parameters.keys | ForEach-Object { $parameterobject[$_] = $armparamobject.parameters[$_]['value'] }
 
+Write-host "Deployment SPOKEvm-${vmprefix}-${vmoffset}-${vmcount} started "
 $Deploy_SPOKEvm = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroup -Name "SPOKEvm-${vmprefix}-${vmoffset}-${vmcount}" -TemplateFile $armfile.FullName -TemplateParameterObject $parameterobject
-
+Write-host "Deployment SPOKEvm-${vmprefix}-${vmoffset}-${vmcount} complete "
 #endregion

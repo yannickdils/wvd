@@ -11,7 +11,7 @@ Set-AzContext -Subscription $context
 $defaultscripturi = "https://raw.githubusercontent.com/yannickdils/wvd/main/ImageManagement/Online/WinSrv2022Customize.ps1"
 
 # Change this to the version number you want to create
-$imageversion = "6.0.0"
+$imageversion = "6.0.1"
 
 # Retrieve Shared Image Gallery Details
 
