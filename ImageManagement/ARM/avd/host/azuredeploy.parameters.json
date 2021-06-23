@@ -1,0 +1,66 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hostpoolName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "artifactsLocation": {
+            "value": "https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip"
+        },
+        "LocalAdminUser": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "LocalAdminPassword": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "DomainAdminUpn": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "DomainAdminPassword": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "Domainname": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "WVDOU": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "WVDPrefix": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "WVDSeries": {
+            "value": "Standard_D2s_v3"
+        },
+        "WVDCount": {
+            "value": 0 // TODO: Fill in parameter value
+        },
+        "Registrationtoken": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "WVDVMOffset": {
+            "value": 0 // TODO: Fill in parameter value
+        },
+        "WVDVMStorageType": {
+            "value": "Premium_LRS"
+        },
+        "SubnetId": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "galleryName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "galleryImageDefinitionName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "galleryImageVersionName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "omsworkspaceresourceid": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "gpu": {
+            "value": false // TODO: Fill in parameter value
+        }
+    }
+}

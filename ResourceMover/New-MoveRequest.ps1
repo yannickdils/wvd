@@ -58,8 +58,6 @@ New-AzRoleAssignment -ObjectId $identityPrincipalId -RoleDefinitionName Contribu
 New-AzRoleAssignment -ObjectId $identityPrincipalId -RoleDefinitionName "User Access Administrator" -Scope "/subscriptions/$TargetSubscriptionID"
 
 
-
-
 #endregion
 
 #Is it really that easy?

@@ -58,7 +58,7 @@
                         "type": "PowerShell",
                         "runElevated": true,
                         "runAsSystem": true,
-                        "name": "settingUpMgmtAgtPath",
+                        "name": "Invoke Optimize Script",
                         "inline": [
                             "[concat('$ScriptFromGitHub = Invoke-WebRequest ',parameters('ScriptUri'),' -UseBasicParsing')]",
                             "Invoke-Expression $($ScriptFromGitHub.Content)"
@@ -85,10 +85,18 @@
                         "runAsSystem": true,
                         "scriptUri": "https://raw.githubusercontent.com/azure/azvmimagebuilder/master/solutions/14_Building_Images_WVD/0_installConfFsLogix.ps1"
                     },
-                      {
+                    {
                         "type": "WindowsRestart",
                         "restartTimeout": "30m"
                     },
+                    {
+                        "type": "PowerShell",
+                        "runElevated": true,
+                        "name": "DeprovisioningScript",
+                        "inline": [
+                            " ((Get-Content -path C:\\DeprovisioningScript.ps1 -Raw) -replace 'Sysprep.exe /oobe /generalize /quiet /quit','Sysprep.exe /oobe /generalize /quit /mode:vm' ) | Set-Content -Path C:\\DeprovisioningScript.ps1"
+                        ]
+                    }
                 ],
                 "distribute": [
                     {
